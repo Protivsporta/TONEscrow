@@ -1,0 +1,25 @@
+{
+    "name": "escrowapp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "array-buffer-to-hex": "^1.0.0",
+      "buffer": "^6.0.3",
+      "ton": "^12.1.5",
+      "tonweb-mnemonic": "^1.0.1"
+    },
+    "devDependencies": {
+      "@types/chai": "^4.3.4",
+      "@types/mocha": "^10.0.0",
+      "chai": "^4.3.7",
+      "expect": "^29.3.1",
+      "mocha": "^10.1.0"
+    }
+  }
+  

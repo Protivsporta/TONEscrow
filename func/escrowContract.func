@@ -1,0 +1,96 @@
+;;
+;;  TON Escrow smart contract
+;;
+
+;;
+;;  Storage
+;;
+;;  uint64 amount
+;;  uint32 royalty_percentage
+;;  uint1  is_deal_ended
+;;  MsgAddressInt guarantor_address
+;;  MsgAddressInt seller_address
+;;  MsgAddressInt buyer_address
+;;
+
+int equal_slices (slice a, slice b) asm "SDEQ";
+
+(int, int, int, slice, slice, slice) load_data () inline {
+    var ds = get_data().begin_parse();
+    return (ds~load_uint(64), ds~load_uint(32), ds~load_uint(1), ds~load_msg_addr(), ds~load_msg_addr(), ds~load_msg_addr());
+}
+
+() store_data (int amount, int royalty_percentage, int is_deal_ended, slice guarantor_address, slice seller_address, slice buyer_address) impure {
+    set_data(begin_cell()
+                .store_uint(amount, 64)
+                .store_uint(royalty_percentage, 32)
+                .store_uint(is_deal_ended, 1)
+                .store_slice(guarantor_address)
+                .store_slice(seller_address)
+                .store_slice(buyer_address)
+                .end_cell()
+    );
+}
+
+slice parse_sender_address (cell in_msg_full) inline {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4);
+    slice sender_address = cs~load_msg_addr();
+    return sender_address;
+}
+
+() send_royalties_and_destroy (slice to_address) impure inline {
+    var msg = begin_cell()
+                .store_uint(0x10, 6)    ;; no bouncable messages
+                .store_slice(to_address)
+                .store_coins(0)
+                .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+
+    send_raw_message(msg.end_cell(), 128 + 32);    ;; send the remaining balance of contract and destroy it
+}
+
+() recv_internal (int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    var sender_address = parse_sender_address(in_msg_full);
+    (int amount, int royalty_percentage, int is_deal_ended, slice guarantor_address, slice seller_address, slice buyer_address) = load_data();
+    throw_unless(401, equal_slices(sender_address, guarantor_address));    ;; only messages from guarantor are accepted 
+
+    int op = in_msg_body~load_uint(32);
+    int query_id = in_msg_body~load_uint(64);
+
+    if (op == 0) {  ;; transfer to seller
+        var amount_to_transfer = amount / 100 * royalty_percentage;
+        var msg = begin_cell()
+                    .store_uint(0x10, 6)    ;; no bouncable messages
+                    .store_slice(seller_address)
+                    .store_coins(amount_to_transfer)
+                    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+
+        send_raw_message(msg.end_cell(), 1);  ;; pays transfer fees separetely
+        store_data(amount - amount_to_transfer, royalty_percentage, 1, guarantor_address, seller_address, buyer_address);   ;; store non-zero flag means that deal is ended
+        return();
+    }
+    if (op == 1) {  ;; transfer back to buyer
+        var amount_to_transfer = amount / 100 * royalty_percentage;
+        var msg = begin_cell()
+                    .store_uint(0x10, 6)    ;; no bouncable messages
+                    .store_slice(buyer_address)
+                    .store_coins(amount_to_transfer)
+                    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1);
+        send_raw_message(msg.end_cell(), 1);  ;; pays transfer fees separetely
+        store_data(amount - amount_to_transfer, royalty_percentage, 1, guarantor_address, seller_address, buyer_address);   ;; store non-zero flag means that deal is ended
+        return();
+    }
+    if (op == 2) {
+        throw_unless(402, is_deal_ended);   ;; guarantor can take royalties only after the deal is ended
+        send_royalties_and_destroy(guarantor_address);
+        return();
+    }
+    throw(0xffff);
+}
+
+;; Get methods 
+
+(int, int, int, slice, slice, slice) get_contract_data () method_id {
+    (int amount, int royalty_percentage,int is_deal_ended, slice guarantor_address, slice seller_address, slice buyer_address) = load_data();
+    return (amount, royalty_percentage, is_deal_ended, guarantor_address, seller_address, buyer_address);
+}
