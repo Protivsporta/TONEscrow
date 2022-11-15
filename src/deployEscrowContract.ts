@@ -4,7 +4,7 @@ import {buildEscrowCodeCell, buildEscrowDataCell, escrowData} from '../test/escr
 
 let client = new TonClient({
     endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-    apiKey: '41024ba3a6c66ef288d64dd570849e4a9b68fe9e21a69aa52e23cc20d6a1f12d'
+    apiKey: process.env.API_KEY
 })
 
 async function deployEscrowContract(amount: number, royalty_percentage: number, guarantor_address: string, seller_address: string, buyer_address: string, mnemonicString?: string) {
@@ -14,16 +14,7 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
     if (mnemonicString) {
         mnemonic = mnemonicString.split(' ')
     } else {
-        mnemonic = [
-            'entire',  'consider', 'anchor',
-            'artist',  'cruel',    'must',
-            'common',  'mosquito', 'stamp',
-            'wide',    'flag',     'gift',
-            'board',   'library',  'anchor',
-            'beyond',  'select',   'burst',
-            'exile',   'tomorrow', 'soul',
-            'alcohol', 'forward',  'first'
-          ]
+        mnemonic = process.env.MNEMONIC?.split(' ')!
     }
 
     const keyPair = await mnemonicToWalletKey(mnemonic);
