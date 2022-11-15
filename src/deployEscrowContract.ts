@@ -1,10 +1,12 @@
 import {Address, Cell, TonClient, StateInit, Message, CommonMessageInfo, InternalMessage, toNano, createWalletTransferV3, WalletContract, WalletV3R2Source} from "ton";
 import {mnemonicToWalletKey} from "ton-crypto";
 import {buildEscrowCodeCell, buildEscrowDataCell, escrowData} from '../test/escrow.data'
+import endpoints from '../endpoints.config'
+
 
 let client = new TonClient({
     endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-    apiKey: process.env.API_KEY
+    apiKey: endpoints.API_KEY
 })
 
 async function deployEscrowContract(amount: number, royalty_percentage: number, guarantor_address: string, seller_address: string, buyer_address: string, mnemonicString?: string) {
@@ -14,7 +16,7 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
     if (mnemonicString) {
         mnemonic = mnemonicString.split(' ')
     } else {
-        mnemonic = process.env.MNEMONIC?.split(' ')!
+        mnemonic = endpoints.MNEMONIC
     }
 
     const keyPair = await mnemonicToWalletKey(mnemonic);
@@ -75,7 +77,7 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
 
     const sendMessage = await client.sendExternalMessage(wallet, transfer);
 
-    setTimeout(checkContractDeployed, 15000)
+    setTimeout(checkContractDeployed, 20000)
 
     async function checkContractDeployed () {
         try {        
@@ -86,7 +88,9 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
         } catch (e) {
             throw new Error('Contract state after deploy is not active')
         }   
-    }
+    } 
 }
 
 exports.deployEscrowContract = deployEscrowContract;
+
+deployEscrowContract(27, 10, 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas', 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas', 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas')

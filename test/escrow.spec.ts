@@ -1,7 +1,7 @@
-import {Cell, CellMessage, CommonMessageInfo, ExternalMessage, InternalMessage, toNano, Address} from "ton";
+import {Cell, CellMessage, CommonMessageInfo, ExternalMessage, Address} from "ton";
 import {EscrowLocal} from "./escrowLocal";
 import {escrowData} from "./escrow.data";
-import {SendMsgAction, OutAction} from "ton-contract-executor";
+import {SendMsgAction} from "ton-contract-executor";
 import BN from "bn.js";
 import {randomAddress} from '../src/utils/randomAddress';
 import {expect} from 'chai'

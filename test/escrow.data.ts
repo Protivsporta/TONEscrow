@@ -1,7 +1,4 @@
 import {Address, Cell, TonClient, StateInit, contractAddress} from "ton";
-import {SmartContract} from "ton-contract-executor";
-import arrayBufferToHex from 'array-buffer-to-hex';
-import {EscrowLocal} from './escrowLocal'
 import BN from "bn.js";
 
 // Escrow contract HEX
