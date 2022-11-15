@@ -17,7 +17,7 @@ export class EscrowLocal {
     // Get method
 
     async getEscrowData() : Promise<EscrowDataResponse> {
-        let res = await this.contract.invokeGetMethod('get_contract_data', [])
+        let res = await this.contract.invokeGetMethod('get_contract_data_full', [])
 
         if (res.type !== 'success') {
             throw new Error("Can't invoke get_contract_data method")
