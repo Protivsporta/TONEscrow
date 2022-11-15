@@ -58,7 +58,7 @@ slice parse_sender_address (cell in_msg_full) inline {
     int query_id = in_msg_body~load_uint(64);
 
     if (op == 0) {  ;; transfer to seller
-        var amount_to_transfer = amount / 100 * (1 - royalty_percentage);
+        var amount_to_transfer = amount / 100 * (100 - royalty_percentage);
         var msg = begin_cell()
                     .store_uint(0x10, 6)    ;; no bouncable messages
                     .store_slice(seller_address)
@@ -70,7 +70,7 @@ slice parse_sender_address (cell in_msg_full) inline {
         return();
     }
     if (op == 1) {  ;; transfer back to buyer
-        var amount_to_transfer = amount / 100 * (1 - royalty_percentage);
+        var amount_to_transfer = amount / 100 * (100 - royalty_percentage);
         var msg = begin_cell()
                     .store_uint(0x10, 6)    ;; no bouncable messages
                     .store_slice(buyer_address)
