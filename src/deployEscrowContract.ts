@@ -9,21 +9,20 @@ let client = new TonClient({
     apiKey: endpoints.API_KEY
 })
 
-export async function deployEscrowContract(amount?: number, royalty_percentage?: number, guarantor_address?: string, seller_address?: string, buyer_address?: string, mnemonicString?: string) {
+let defaultConfig: escrowData = {
+    amount: toNano(1),
+    royalty_percentage: 15,
+    is_deal_ended: false,
+    guarantor_address: Address.parseFriendly("EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue").address,
+    seller_address: Address.parseFriendly("EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue").address,
+    buyer_address: Address.parseFriendly("EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue").address
+}
 
-    let mnemonic: string[] = []
+export async function deployEscrowContract(config?: escrowData, mnemonicString?: string) {
 
-    if (mnemonicString) {
-        mnemonic = mnemonicString.split(' ')
-    } else {
-        mnemonic = endpoints.MNEMONIC
-    }
+    let mnemonic: string[] 
 
-    amount !== undefined ? amount : amount = 1
-    royalty_percentage !== undefined ? royalty_percentage : royalty_percentage = 15
-    guarantor_address !== undefined ?  guarantor_address : guarantor_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
-    seller_address !== undefined ? seller_address : seller_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
-    buyer_address !== undefined ? buyer_address : buyer_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
+    mnemonicString !== undefined ?  mnemonic = mnemonicString.split(' ') :  mnemonic = endpoints.MNEMONIC
 
     const keyPair = await mnemonicToWalletKey(mnemonic);
 
@@ -32,22 +31,13 @@ export async function deployEscrowContract(amount?: number, royalty_percentage?:
         workchain: 0
     }))
 
-    const guarantor: Address = Address.parseFriendly(guarantor_address!).address;
-    const seller: Address = Address.parseFriendly(seller_address!).address;
-    const buyer: Address = Address.parseFriendly(buyer_address!).address;
+    let data: escrowData
 
-    const config: escrowData = {
-        amount: toNano(amount + 0.2),
-        royalty_percentage: royalty_percentage!,
-        is_deal_ended: false,
-        guarantor_address: guarantor,
-        seller_address: seller,
-        buyer_address: buyer,
-    }
+    config ? data = config : data = defaultConfig
 
     const codeCell: Cell = buildEscrowCodeCell();
 
-    const dataCell: Cell = buildEscrowDataCell(config)
+    const dataCell: Cell = buildEscrowDataCell(data)
 
     const stateInit: Message = new StateInit({
         code: codeCell,
@@ -63,9 +53,6 @@ export async function deployEscrowContract(amount?: number, royalty_percentage?:
         stateInit: stateInit,
     })
 
-    const messageInfoCell: Cell = new Cell();
-    messageInfo.writeTo(messageInfoCell);
-
     let seqno = await wallet.getSeqNo();
 
     const transfer = createWalletTransferV3({
@@ -74,7 +61,7 @@ export async function deployEscrowContract(amount?: number, royalty_percentage?:
         sendMode: 3,
         order: new InternalMessage({
             to: escrowContractAddress,
-            value: toNano(0.05),
+            value: data.amount.add(toNano(0.2)),
             bounce: false,
             body: messageInfo
         }),
@@ -83,6 +70,7 @@ export async function deployEscrowContract(amount?: number, royalty_percentage?:
 
     const sendMessage = await client.sendExternalMessage(wallet, transfer);
 
+    // Set timeout to get updated state of deployed contract
     setTimeout(checkContractDeployed, 20000)
 
     async function checkContractDeployed () {
@@ -103,5 +91,3 @@ export async function deployEscrowContract(amount?: number, royalty_percentage?:
 }
 
 exports.deployEscrowContract = deployEscrowContract;
-
-//deployEscrowContract()

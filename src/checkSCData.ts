@@ -18,13 +18,22 @@ let defaultConfig: EscrowDataResponse = {
 }
 
 
-export async function checkSCData(escrowAddress: string, config?: EscrowDataResponse) : Promise<Boolean> {
+export async function checkSCData(escrowAddress: string, is_deal_ended?: Boolean, checkState?: Boolean, config?: EscrowDataResponse) : Promise<Boolean> {
 
     config !== undefined ? config : config = defaultConfig
 
     const contractAddress = Address.parse(escrowAddress);
 
     let state = await client.getContractState(contractAddress)
+
+    // If checkState flag is recieved, we need to check only contract state
+    if (checkState) {
+        if (state.state == 'uninitialized') {
+            return true
+        } else {
+            throw new Error('Contract is not destroyed')
+        }
+    }
 
     let code = Cell.fromBoc(state.code!)[0]
     let data = Cell.fromBoc(state.data!)[0]
@@ -35,15 +44,27 @@ export async function checkSCData(escrowAddress: string, config?: EscrowDataResp
 
     let escrowData: EscrowDataResponse = await escrowLocal.getEscrowData();
 
-    if ((defaultConfig.amount >= escrowData.amount)) {
-        throw new Error("Amount is not OK")
+    // If is_deal_ended flag is recieved we need to check only is_deal_ended flag
+    if (is_deal_ended) {
+        if (is_deal_ended != escrowData.is_deal_ended) {
+            throw new Error("Is deal ended flag is not OK")
+        } else {
+            return true
+        }
+    } else {
+        is_deal_ended = defaultConfig.is_deal_ended
     }
+
+
+    if (defaultConfig.amount.toString() !== escrowData.amount.toString()) {
+        throw new Error("Amount is not OK")
+    } 
 
     if (defaultConfig.royalty_percentage != escrowData.royalty_percentage) {
         throw new Error("Royalties percentage is not OK")
     }
 
-    if (defaultConfig.is_deal_ended != escrowData.is_deal_ended) {
+    if (is_deal_ended != escrowData.is_deal_ended) {
         throw new Error("Is deal ended flag is not OK")
     }
 
@@ -59,11 +80,9 @@ export async function checkSCData(escrowAddress: string, config?: EscrowDataResp
         throw new Error("Buyer address is not OK")
     }
 
-    console.log('Check success')
+    console.log('Checking contract process is success')
     
-    return true
+    return true 
 }
 
 exports.checkSCData = checkSCData;
-
-//checkSCData('EQDHGYxxhrWBhVql9S5FuD8LcL2uR5flOApiALAKjmgp5HaW')

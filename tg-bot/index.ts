@@ -3,10 +3,10 @@ import TelegramAPI from 'node-telegram-bot-api'
 import {InlineKeyboardMarkup, InlineKeyboardButton, SendMessageOptions, ChatId} from 'node-telegram-bot-api'
 import {deployEscrowContract} from '../src/deployEscrowContract'
 import {checkSCData} from '../src/checkSCData'
+import {OperationCodes} from '../test/escrow.data'
+import {sendTransactionToEscrow} from '../src/sendMessages'
 
-//EQDHGYxxhrWBhVql9S5FuD8LcL2uR5flOApiALAKjmgp5HaW
-
-let contractAddress: string = ''
+let contractAddress: string 
 
 const button1: InlineKeyboardButton = {
     text: "I'm buyer!",
@@ -38,6 +38,21 @@ const button6: InlineKeyboardButton = {
     callback_data: 'transfer_back_to_buyer'
 }
 
+const button7: InlineKeyboardButton = {
+    text: "Check",
+    callback_data: 'check_after'
+}
+
+const button8: InlineKeyboardButton = {
+    text: "Take royalties",
+    callback_data: 'take_royalties'
+}
+
+const button9: InlineKeyboardButton = {
+    text: "Check",
+    callback_data: 'check_destroyed'
+}
+
 const transfer: InlineKeyboardMarkup = {
     inline_keyboard: [
         [button5]
@@ -62,11 +77,33 @@ const check: InlineKeyboardMarkup = {
     ]
 }
 
+const checkAfter: InlineKeyboardMarkup = {
+    inline_keyboard: [
+        [button7]
+    ]
+}
+
+const checkDestroyed: InlineKeyboardMarkup = {
+    inline_keyboard: [
+        [button9]
+    ]
+}
+
 const roles: InlineKeyboardMarkup = {
     inline_keyboard: [
         [button1],
         [button2]
     ]
+}
+
+const royalties: InlineKeyboardMarkup = {
+    inline_keyboard: [
+        [button8]
+    ]
+}
+
+const royaltiesOptions: SendMessageOptions = {
+    reply_markup: royalties
 }
 
 const transferOptions: SendMessageOptions = {
@@ -87,6 +124,14 @@ const deployOptions: SendMessageOptions = {
 
 const checkOptions: SendMessageOptions = {
     reply_markup: check
+}
+
+const checkAfterOptions: SendMessageOptions = {
+    reply_markup: checkAfter
+}
+
+const checkDestroyedOptions: SendMessageOptions = {
+    reply_markup: checkDestroyed
 }
 
 
@@ -128,6 +173,7 @@ const start = () => {
                     return await bot.sendMessage(chatId, `Escrow contract was deployed to address ${result}. Please, send this contract address to guarantor`)
                 }
             } catch (error) {
+                console.log(error)
                 return await bot.sendMessage(chatId, "Contract is not deployed for some reasons :( Please check logs")
             }
         }
@@ -143,11 +189,67 @@ const start = () => {
                     return await bot.sendMessage(chatId, "Contract is fine! Please tap on Transfer button to transfer money to seller", transferOptions)
                 }
             } catch (error) {
-                return await bot.sendMessage(chatId, "Seems like something wrong with contract! Please tap on Transfer Back button to transfer money back to buyer", transferBackOptions)
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like something gets wrong with contract! Please tap on Transfer Back button to transfer money back to buyer", transferBackOptions)
             }
         }
 
-        return await (bot.sendMessage(chatId, "I don't undersand you! Try to use command menu"))
+        if (data === 'transfer_to_seller') {
+            try {
+                await sendTransactionToEscrow(OperationCodes.TrasferMoneyToSeller, contractAddress)
+                await bot.sendMessage(chatId, "Please, wait 10 seconds to get further instructions")
+                setTimeout(async () => bot.sendMessage(chatId, "Transaction in progress! Please tap Check button to check transaction status", checkAfterOptions), 10000)
+            } catch (error) {
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like transaction is failed. Please check logs")
+            }
+        }
+
+        if (data === 'transfer_back_to_buyer') {
+            try {
+                await sendTransactionToEscrow(OperationCodes.TransferMoneyBackToBuyer, contractAddress)
+                await bot.sendMessage(chatId, "Please, wait 10 seconds to get further instructions")
+                setTimeout(async () => bot.sendMessage(chatId, "Transaction in progress! Please tap Check button to check transaction status", checkAfterOptions), 10000)
+            } catch (error) {
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like transaction is failed. Please check logs")
+            }
+        }
+
+        if (data === 'check_after') {
+            try {
+                const result = await checkSCData(contractAddress, true)
+                if (result) {
+                    return await bot.sendMessage(chatId, "Transaction recieved! Deal is ended, you can take your royalties!", royaltiesOptions)
+                }
+            } catch (error) {
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like something gets wrong with transaction! Please check logs")
+            }
+        }
+
+        if (data === 'take_royalties') {
+            try {
+                await sendTransactionToEscrow(OperationCodes.TransferRoyaliesToGuarantor, contractAddress)
+                await bot.sendMessage(chatId, "Please, wait 10 seconds to get further instructions")
+                setTimeout(async () => bot.sendMessage(chatId, "Transaction in progress! Please tap Check button to check transaction status", checkDestroyedOptions), 10000)
+            } catch (error) {
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like transaction is failed. Please check logs")
+            }
+        }
+
+        if(data === 'check_destroyed') {
+            try {
+                const result = await checkSCData(contractAddress, true, true)
+                if (result) {
+                    return await bot.sendMessage(chatId, "Transaction is succeed! Deal is finished!")
+                }
+            } catch (error) {
+                console.log(error)
+                return await bot.sendMessage(chatId, "Seems like something gets wrong with transaction! Please check logs")
+            }
+        }
     })
 }
 

@@ -136,7 +136,6 @@ describe('escrow contract recv_internal block', () => {
 
         expect(resAfter.actionList.length).eqls(1)
         let [actionMessage] = resAfter.actionList as [SendMsgAction]
-        let actionMessageInfo = actionMessage.message.info as InternalMessageOut;
 
         expect(actionMessage.mode).eqls(128 + 32)
         expect(actionMessage.message.info.dest?.toString()).eqls(defaultConfig.guarantor_address.toString())
