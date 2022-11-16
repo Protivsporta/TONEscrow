@@ -1,7 +1,7 @@
 # TON Escrow contract
 
 This repository is an example of TON smartcontracts implementation. 
-Exactly it is one-time deployed smartcontract with ability for sale peer-to-peer
+Exactly it is one-time deployed fully-tested smartcontract with ability for sale peer-to-peer
 
 Involved actors:
 - Guarantor
@@ -38,14 +38,22 @@ npm run dev
 npm run start
 ```
 
-
 ## How it works 
 
+The Escrow contract is deployed in TON Blockchain, which customers can interact with by using tg-bot interface
 
-## Usage
+## Resources
 
-Usage is pretty straightforward: first of all, you should create an instance of SmartContract.
-You could think of SmartContract as an existing deployed smart contract with which you can communicate.
+- Example of deployed Escrow smart contract:
+```
+EQDooLp9q93EV-lajwbvfOPH01SbluAFxMHvQXjM9QUxHFKN
+```
+- Telegram bot for interacting with contract:
+```
+http://t.me/escrow_stage_ton_bot
+```
+
+
 
 
 
