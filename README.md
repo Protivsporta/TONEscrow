@@ -8,32 +8,39 @@ Involved actors:
 - Seller
 - Buyer
 
-## Features
+And the contract also supports royalties for guarantor
 
-TON Contract executor allows you to: 
+## User-flow
 
-- execute smart contracts from existing code and data Cells
-- get TVM execution logs
-- debug your contracts via debug primitives
-- seamlessly handle internal state changes of contract data and code
-- call so-called get methods of smart contracts
-- send and debug internal and external messages
-- debug messages sent by smart contract
-- manipulate the C7 register of the smart contract (including time, random seed, network config, etc.)
-- make some gas optimizations
-
-**Basically you can develop, debug, and fully cover your contract with unit-tests fully locally without deploying it to the network**
+- Buyer deploys smart contract with desired amount of TON coins
+- Guarantor checks if everything is OK (both onchain & offchain)
+- If everything is OK - guarantor send's special signed message to contract & contract sends coins to seller
+- If something goes wrong - guarantor send's special signed message to contract & contract returns coins to buyer
 
 ## Installation
 
 ```bash
-yarn add ton-contract-executor
+npm install
 ```
 
+## Scripts 
+
+- Tests:
+```bash
+npm run test
+```
+- Nodemon tg-bot start:
+```bash
+npm run dev
+```
+- Simple tg-bot start:
+```bash
+npm run start
+```
+
+
 ## How it works 
-This package internally uses original TVM which runs on actual validator nodes to execute smart contracts.
-TVM is built to WASM so this library could be used on any platform.
-We also added some layer of abstraction on top of original TVM to allow it to run contracts via JSON configuration (those changes could be found [here](https://github.com/ton-community/ton-blockchain/tree/vm-exec/crypto/vm-exec))
+
 
 ## Usage
 
