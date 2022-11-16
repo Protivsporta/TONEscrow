@@ -49,9 +49,10 @@ The Escrow contract is deployed in TON Blockchain, which customers can interact 
 EQDooLp9q93EV-lajwbvfOPH01SbluAFxMHvQXjM9QUxHFKN
 ```
 - Telegram bot for interacting with contract:
-```
+
+
 http://t.me/escrow_stage_ton_bot
-```
+
 
 
 
