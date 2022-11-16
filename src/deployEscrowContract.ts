@@ -10,7 +10,7 @@ let client = new TonClient({
 })
 
 let defaultConfig: escrowData = {
-    amount: toNano(1.3),
+    amount: toNano(1),
     royalty_percentage: 15,
     is_deal_ended: false,
     guarantor_address: Address.parseFriendly("EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue").address,
@@ -92,4 +92,3 @@ export async function deployEscrowContract(config?: escrowData, mnemonicString?:
 
 exports.deployEscrowContract = deployEscrowContract;
 
-deployEscrowContract()
