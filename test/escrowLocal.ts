@@ -3,7 +3,7 @@ import {Address, Cell, CellMessage, CommonMessageInfo, InternalMessage, Slice, t
 import BN from "bn.js";
 import {escrowData, OperationCodes, buildEscrowCodeCell, buildEscrowDataCell} from './escrow.data'
 
-type EscrowDataResponse = { amount: BN, royalty_percentage: number, is_deal_ended: boolean, guarantor_address: Address, seller_address: Address, buyer_address: Address}
+export type EscrowDataResponse = { amount: BN, royalty_percentage: number, is_deal_ended: boolean, guarantor_address: Address, seller_address: Address, buyer_address: Address}
 
 export class EscrowLocal {
 

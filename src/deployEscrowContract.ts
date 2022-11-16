@@ -9,7 +9,7 @@ let client = new TonClient({
     apiKey: endpoints.API_KEY
 })
 
-async function deployEscrowContract(amount: number, royalty_percentage: number, guarantor_address: string, seller_address: string, buyer_address: string, mnemonicString?: string) {
+export async function deployEscrowContract(amount?: number, royalty_percentage?: number, guarantor_address?: string, seller_address?: string, buyer_address?: string, mnemonicString?: string) {
 
     let mnemonic: string[] = []
 
@@ -19,6 +19,12 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
         mnemonic = endpoints.MNEMONIC
     }
 
+    amount !== undefined ? amount : amount = 1
+    royalty_percentage !== undefined ? royalty_percentage : royalty_percentage = 15
+    guarantor_address !== undefined ?  guarantor_address : guarantor_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
+    seller_address !== undefined ? seller_address : seller_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
+    buyer_address !== undefined ? buyer_address : buyer_address = 'EQCgpwBxV9YjIAl3LZ8MJq3sdEuS3LF6EhIeC3jrTUIo4Cue'
+
     const keyPair = await mnemonicToWalletKey(mnemonic);
 
     const wallet = WalletContract.create(client, WalletV3R2Source.create({
@@ -26,13 +32,13 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
         workchain: 0
     }))
 
-    const guarantor: Address = Address.parseFriendly(guarantor_address).address;
-    const seller: Address = Address.parseFriendly(seller_address).address;
-    const buyer: Address = Address.parseFriendly(buyer_address).address;
+    const guarantor: Address = Address.parseFriendly(guarantor_address!).address;
+    const seller: Address = Address.parseFriendly(seller_address!).address;
+    const buyer: Address = Address.parseFriendly(buyer_address!).address;
 
     const config: escrowData = {
         amount: toNano(amount + 0.2),
-        royalty_percentage: royalty_percentage,
+        royalty_percentage: royalty_percentage!,
         is_deal_ended: false,
         guarantor_address: guarantor,
         seller_address: seller,
@@ -84,13 +90,18 @@ async function deployEscrowContract(amount: number, royalty_percentage: number, 
             const contractState = (await client.getContractState(escrowContractAddress)).state;
             if (contractState == "active") {
                 console.log(`Escrow contract was deployed to address ${escrowContractAddress.toFriendly()}`)
+            } else {
+                throw new Error('Contract state after deploy is not active')
             }
+            return false
         } catch (e) {
             throw new Error('Contract state after deploy is not active')
         }   
     } 
+
+    return escrowContractAddress.toFriendly()
 }
 
 exports.deployEscrowContract = deployEscrowContract;
 
-deployEscrowContract(27, 10, 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas', 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas', 'EQB7Xc0lO0QUSyAIRN3ezvHA6l_JWMr3uB6NVWp3vllqyAas')
+//deployEscrowContract()
