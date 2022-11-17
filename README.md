@@ -40,7 +40,9 @@ npm run start
 
 ## How it works 
 
-The Escrow contract is deployed in TON Blockchain, which customers can interact with by using tg-bot interface
+- Escrow contract deployed by ton-community TS library
+- All tests are carried out with ton-contract-executor, tool that allows you to create local copy of your smart contract
+- All interactions with deployed contract are managed by ton-community TS library
 
 ## Resources
 
@@ -51,7 +53,7 @@ EQDooLp9q93EV-lajwbvfOPH01SbluAFxMHvQXjM9QUxHFKN
 - Telegram bot for interacting with contract:
 
 
-http://t.me/escrow_stage_ton_bot
+ http://t.me/escrow_stage_ton_bot
 
 
 
